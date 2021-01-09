@@ -1,6 +1,6 @@
 import os
-
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+import functools
+from flask import Flask, render_template, redirect, url_for, request, flash, session, g
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -16,10 +16,27 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    from .models import db, User
+    from .models import db, User, Drink
 
     db.init_app(app)
     migrate = Migrate(app, db)
+
+    def required_login(view):
+        @functools.wraps(view)
+        def wrapped_view(**kwargs):
+            if not g.user:
+                return redirect(url_for('log_in'))
+            return view(**kwargs)
+        return wrapped_view
+
+
+    @app.before_request
+    def load_user():
+        user_id = session.get('user_id')
+        if user_id:
+            g.user = User.query.get(user_id)
+        else:
+            g.user = None
 
     @app.route('/sign_up', methods=('GET', 'POST'))
     def sign_up():
@@ -75,5 +92,33 @@ def create_app(test_config=None):
         session.clear()
         flash('Successfully logged out.', 'success')
         return redirect(url_for('log_in'))
+
+    @app.route('/drinks')
+    @required_login
+    def drink_index():
+        return render_template('drink_index.html', drinks=g.user.drinks)
+
+    @app.route('/drinks/new', methods=('GET', 'POST'))
+    @required_login
+    def drink_create():
+        if request.method == 'POST':
+            drink_name = request.form['drink_name']
+            origin = request.form['origin']
+            error = None
+
+            if not drink_name:
+                error = 'Name is required.'
+
+            if not error:
+                drink = Drink(owner=g.user, name=drink_name, origin=origin)
+                db.session.add(drink)
+                db.session.commit()
+                flash(f"Successfully created drink: '{drink_name}'", 'success')
+                return redirect(url_for('drink_index'))
+
+            flash(error, 'error')
+
+        return render_template('drink_create.html')
+
 
     return app
