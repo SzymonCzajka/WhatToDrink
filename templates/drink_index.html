@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if not drinks %}
+<div class="content">
+    <p>You haven't added any drinks! <a href="{{ url_for('drink_create') }}">Add your first drink.</a>
+</div>
+{% endif %}
+
+{% for note in notes %}
+<article class="message">
+    <div class="message-header">
+        <p>{{ drink.name }}</p>
+        <div>
+            <a class="button is-primary is-small has-text-weight-bold" href="#">
+                Edit Drink
+            </a>
+            <a class="button is-danger is-small has-text-weight-bold" href="#">
+                Delete Drink
+            </a>
+        </div>
+    </div>
+    <div class="message-body content">
+        {{ drink.origin_html|safe }}
+    </div>
+</article>
+{% endfor %}
+{% endblock %}
