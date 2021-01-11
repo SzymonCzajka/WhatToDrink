@@ -102,23 +102,22 @@ def create_app(test_config=None):
     @required_login
     def drink_create():
         if request.method == 'POST':
-            drink_name = request.form['drink_name']
+            name = request.form['name']
             origin = request.form['origin']
             error = None
 
-            if not drink_name:
+            if not name:
                 error = 'Name is required.'
 
             if not error:
-                drink = Drink(owner=g.user, name=drink_name, origin=origin)
+                drink = Drink(owner=g.user, name=name, origin=origin)
                 db.session.add(drink)
                 db.session.commit()
-                flash(f"Successfully created drink: '{drink_name}'", 'success')
+                flash(f"Successfully created note: '{name}'", 'success')
                 return redirect(url_for('drink_index'))
 
             flash(error, 'error')
 
         return render_template('drink_create.html')
-
 
     return app
