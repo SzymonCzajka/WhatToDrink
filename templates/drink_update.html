@@ -6,7 +6,7 @@
 
 <form action="{{ url_for('drink_update', drink_id=drink.id) }}" method="post">
     <div class="field">
-        <label class="label" for="title">Title</label>
+        <label class="label" for="name">Name</label>
         <div class="control">
             <input name="name" value="{{ request.form['name'] or drink.name }}" class="input"></input>
         </div>

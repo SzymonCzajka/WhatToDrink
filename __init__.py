@@ -29,6 +29,10 @@ def create_app(test_config=None):
             return view(**kwargs)
         return wrapped_view
 
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
+
 
     @app.before_request
     def load_user():
@@ -119,5 +123,38 @@ def create_app(test_config=None):
             flash(error, 'error')
 
         return render_template('drink_create.html')
+
+    @app.route('/drinks/<drink_id>/edit', methods=('GET', 'PATCH','POST'))
+    @required_login
+    def drink_update(drink_id):
+        drink = Drink.query.filter_by(user_id=g.user.id, id=drink_id).first_or_404()
+        if request.method in ["POST",'PATCH']:
+            name = request.form['name']
+            origin = request.form['origin']
+            error = None
+
+            if not name:
+                error = 'Title is required.'
+
+            if not error:
+                drink.name = name
+                drink.origin = origin
+                db.session.add(drink)
+                db.session.commit()
+                flash(f"Successfully updated drink: '{name}'", 'success')
+                return redirect(url_for('drink_index'))
+
+            flash(error, 'error')
+
+        return render_template('drink_update.html', drink=drink)
+
+    @app.route('/drinks/<drink_id>/delete', methods=('GET', 'DELETE'))
+    @required_login
+    def drink_delete(drink_id):
+        drink = Drink.query.filter_by(user_id=g.user.id, id=drink_id).first_or_404()
+        db.session.delete(drink)
+        db.session.commit()
+        flash(f"Successfully deleted drink: '{drink.name}'", 'success')
+        return redirect(url_for('drink_index'))
 
     return app

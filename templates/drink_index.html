@@ -12,10 +12,10 @@
     <div class="message-header">
         <p>{{ drink.name }}</p>
         <div>
-            <a class="button is-primary is-small has-text-weight-bold" href="#">
+            <a class="button is-primary is-small has-text-weight-bold" href="{{ url_for('drink_update',drink_id=drink.id) }}">
                 Edit Drink
             </a>
-            <a class="button is-danger is-small has-text-weight-bold" href="#">
+            <a class="button is-danger is-small has-text-weight-bold" href="{{ url_for('drink_delete',drink_id=drink.id) }}">
                 Delete Drink
             </a>
         </div>
